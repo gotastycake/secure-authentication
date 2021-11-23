@@ -27,10 +27,10 @@ User.pre('save', function (next) {
 
 
 Вигляд основної сторінки:
-!(main_page.png)
+![Main page](main_page.png)
 
 Вигляд сторінки логіну:
-!(login_page.png)
+![Login page](login_page.png)
 
 Вигляд сторінки, що доступна авторизованим користувачам
-!(dashboard_page.png)
+![Dashboard page](dashboard_page.png)
