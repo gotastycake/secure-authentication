@@ -10,8 +10,10 @@ import morganBody from 'morgan-body';
 
 import authRouter from './routes/auth.js';
 import indexRouter from './routes/index.js';
+import profileRouter from './routes/profile.js';
 
 import './mongo.js';
+import config from './config.js';
 
 const app = express();
 
@@ -27,7 +29,7 @@ morganBody(app, {
 });
 
 const store = new MongoDBStore({
-    uri: 'mongodb+srv://admin:uaZB4ApMnQd8WVh@cluster0.ngfr1.mongodb.net/auth_project?retryWrites=true&w=majority',
+    uri: config.mongo.url,
     collection: 'webSessions'
 });
 
@@ -42,11 +44,17 @@ app.use(session({
 }));
 
 app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
 app.use(passport.initialize());
 app.use(passport.session());
 
 app.use('/', authRouter);
 app.use('/', indexRouter);
+app.use('/profile', profileRouter);
+
+app.use(express.json({
+    type: ['application/json', 'text/plain']
+}))
 
 // assign port
 const port = 3000;
