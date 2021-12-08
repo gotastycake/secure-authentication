@@ -6,8 +6,11 @@ const router = express.Router();
 router.get('/', isLogged, (req, res) => {
     const { user } = req;
     const { username, email: emailEncrypted, phone: phoneEncrypted } = user;
-    const decryptedData = decryptData(user, emailEncrypted, phoneEncrypted);
-    const [ email = '[malformed]', phone = '[malformed]' ] = decryptedData;
+    let email = 'None', phone = 'None';
+    if (emailEncrypted && phoneEncrypted) {
+        [ email = '[malformed]', phone = '[malformed]' ] = decryptData(user, emailEncrypted, phoneEncrypted);
+    }
+
 
     res.send(`
         <!DOCTYPE html>
