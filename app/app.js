@@ -14,6 +14,8 @@ import profileRouter from './routes/profile.js';
 
 import './mongo.js';
 import config from './config.js';
+import fs from 'fs';
+import https from 'https';
 
 const app = express();
 
@@ -58,4 +60,11 @@ app.use(express.json({
 
 // assign port
 const port = 3000;
-app.listen(port, () => console.log(`This app is listening on port ${port}`));
+// app.listen(port, () => console.log(`This app is listening on port ${port}`));
+
+const key = fs.readFileSync('./key.pem');
+const cert = fs.readFileSync('./cert.pem');
+
+const server = https.createServer({key: key, cert: cert }, app);
+
+server.listen(port, 'localhost');
