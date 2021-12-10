@@ -1,36 +1,50 @@
 ## Звіт
-Для досягнення цілей роботи були використані node.js framework Express, MongoDB, passport.
-Express дозволяє швидко реалізувати веб-сервер, а також зручно підключити модулі авторизації. MongoDB обрана як популярна база даних, а passport - популярна бібліотека для авторизації.
+Створення безпечного сховища даних відбувалося на основі коду лабораторної роботи №5.
 
-Пароль хешується на бекенді за допомогою бібліотеки bcrypt із 10 циклами “соління”, хеш зберігається разом із даними юзера в mongodb.
+У якості алгоритму шифрування був обраний AES-256-CBC.
+Після отримання даних клієнта, кожен елемент шифрується, а потім зберігається до БД.
+Secret Key зберігається у .env файлі конфігурації, а Init Vector отримується з байтів _id користувача.
+
+Функція для шифрування даних:
 ```js
-User.pre('save', function (next) {
-    let user = this;
-    if (!user.isModified('password')) { return next(); }
-    bcrypt.genSalt(10, function (err, salt) {
-        if (err) { console.error(err); return next(err); }
-        bcrypt.hash(user.password, salt, function (err, hash) {
-            if (err) { console.error(err); return next(err); }
+const algorithm = "aes-256-cbc";
+const securityKey = Buffer.from(config.aesSecretKey);
+export const encryptData = (user, ...data) => {
+    let { _id } = user;
+    const initVector = Buffer.from(_id.toString()).slice(8, 24);
 
-            user.password = hash;
-            next();
-        });
-    });
-});
+    for (let i = 0; i < data.length; i ++) {
+        const cipher = crypto.createCipheriv(algorithm, securityKey, initVector);
+        data[i] = cipher.update(data[i], "utf-8", "hex");
+        data[i] += cipher.final("hex");
+    }
+    return data;
+}
 ```
 
-Сесії Express були реалізовані для того, щоб користуватися додатком адекватно, не збиваючи авторизацію юзерів після його перезапуску.
+Функція для дешифрування даних:
+```js
+export const decryptData = (user, ...data) => {
+    const funcName = "[decryptData]";
+    let { _id } = user;
 
-Поточна вимога до паролю: якнайменше 8 символів. Інші вимоги можна додати за необхідності.
+    const initVector = Buffer.from(_id.toString()).slice(8, 24);
+    try {
+        for (let i = 0; i < data.length; i ++) {
+            const decipher = crypto.createDecipheriv(algorithm, securityKey, initVector);
+            data[i] = decipher.update(data[i], "hex", "utf-8")
+            data[i] += decipher.final("utf8");
+        }
+        return data;
+    } catch (err) {
+        console.error(funcName, user.username, err);
+        return [];
+    }
+};
+```
 
-Для реалізації нормальної безпеки також необхідно мати https connection, який легко налаштувати на сервері.
+Сторінка редагування даних користувача:  
+![Edit page](edit_page.jpg)
 
-
-Вигляд основної сторінки:
-![Main page](main_page.png)
-
-Вигляд сторінки логіну:
-![Login page](login_page.png)
-
-Вигляд сторінки, що доступна авторизованим користувачам
-![Dashboard page](dashboard_page.png)
+Внесені зміни успішно збережені:  
+![Saved successfully](saved_successfully.jpg)

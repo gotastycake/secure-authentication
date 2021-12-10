@@ -1,8 +1,9 @@
 import mongoose from 'mongoose';
+import config from './config.js';
 
 const funcName = '[MongoDB]';
 
-mongoose.connect('mongodb+srv://admin:uaZB4ApMnQd8WVh@cluster0.ngfr1.mongodb.net/auth_project?retryWrites=true&w=majority',{
+mongoose.connect(config.mongo.url,{
     useNewUrlParser: true,
     useUnifiedTopology: true
 });
